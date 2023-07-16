@@ -5,11 +5,10 @@ import time
 import heapq
 import copy
 
-board_size = 4
-num_walls = 3
+board_size = 5
+num_walls = 4
 
 # Initialize Pygame and set up the game window
-pygame.init()
 WIDTH = HEIGHT = 600
 FRAME_SIZE = 40
 WINDOW_WIDTH = WIDTH + FRAME_SIZE*2 + 400
@@ -21,13 +20,9 @@ LOG2_COLOR = (0, 0, 255)  # Blue color for Player 2's moves
 BOTH_COLOR = (128, 0, 128)  # Purple
 WALLS_COLOR = (0, 0, 0)  # White color for the frame
 
-window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-pygame.display.set_caption("Quoridor Game")
 
 from Player1AIrand import *
 from Player2AIrand import *
-
-
 
 
 class Quoridor:
@@ -37,7 +32,7 @@ class Quoridor:
         self.players = ['P1', 'P2']
         self.player_positions = {'P1': (board_size - 1, board_size // 2), 'P2': (0, board_size // 2  if board_size % 2 == 1 else board_size // 2 -1)}
         self.walls = {'P1': num_walls, 'P2': num_walls}
-        self.ply = random.randint(0,1)
+        self.ply = 0 #random.randint(0,1)
         self.player1_ai = Player1AI()  # Create an instance of Player1's AI
         self.player2_ai = Player2AI()  # Create an instance of Player2's AI
         self.move_log = []  # Move log to store the moves
@@ -214,8 +209,8 @@ class Quoridor:
         if (current_player == 'P1' and self.player_positions[current_player][0] == 0) or \
                 (current_player == 'P2' and self.player_positions[current_player][0] == self.board_size - 1):
             self.game_over = True
-            print(self.player_positions, self.player_positions[current_player][0] == 0, self.player_positions[current_player][0] == self.board_size - 1)
-            print(f"Player {current_player} wins!")
+            #print(self.player_positions, self.player_positions[current_player][0] == 0, self.player_positions[current_player][0] == self.board_size - 1)
+            #print(f"Player {current_player} wins!")
             
         self.ply = (self.ply + 1) % 2
         self.previous_board = [row[:] for row in self.board]  # Save the current board state
@@ -349,8 +344,9 @@ class Quoridor:
     def print_board(self):
         for i in range(self.board_size):
             for j in range(self.board_size):
-                print( self.board[i][j] , end="\t")
-            print()
+                pass
+                #print( self.board[i][j] , end="\t")
+            #print()
 
 
     def draw_log(self):
@@ -366,68 +362,74 @@ class Quoridor:
             text = log_font.render(str(move[0])+" "+str(move[1]), True, LOG2_COLOR)
             window.blit(text, (WIDTH + 300, 50 + i * 40))
 
-game = Quoridor(board_size)
 
-running = True
-clock = pygame.time.Clock()
+for i in range(10):
+    
+    pygame.init()
+    window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    pygame.display.set_caption("Quoridor Game")
+    game = Quoridor(board_size)
+    
+    running = True
+    clock = pygame.time.Clock()
 
-current_move = None  # Track the current move
-stop_game = False
+    current_move = None  # Track the current move
+    stop_game = False
 
-while running:
-    clock.tick(30)
+    while running:
+        clock.tick(30)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                if current_move is None:
-                    if game.ply == 0:
-                        current_move = game.player1_ai.get_move(game)
-                    else:
-                        current_move = game.player2_ai.get_move(game)
-                    illegal = False
-                    #print(current_move, "NOT IN", game.get_legal_moves(), current_move not in game.get_legal_moves())
-                    if current_move not in game.get_legal_moves():
-                        illegal = True
-                        print("ILLEGAL MOVE DETECTED", game.ply)
-##            elif event.key == pygame.K_LEFT:
-##                game.undo_move()
-##                current_move = None  # Reset current_move to None
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    if current_move is None:
+                        if game.ply == 0:
+                            current_move = game.player1_ai.get_move(game)
+                        else:
+                            current_move = game.player2_ai.get_move(game)
+                        illegal = False
+                        #print(current_move, "NOT IN", game.get_legal_moves(), current_move not in game.get_legal_moves())
+                        if current_move not in game.get_legal_moves():
+                            illegal = True
+                            print("ILLEGAL MOVE DETECTED", game.ply)
+    ##            elif event.key == pygame.K_LEFT:
+    ##                game.undo_move()
+    ##                current_move = None  # Reset current_move to None
 
-    if current_move is not None:
-        if current_move[0] in ['U', 'D', 'L', 'R']:
-            game.move_player(current_move)
-        else:
-            game.place_wall(current_move)
-        print(current_move)
-        game.print_board()
-
-        
-        # Check if the game is over
-        if stop_game == True:
-            running = False
-
-        
-        if game.game_over:
-            stop_game = True
-
-        if illegal == True:
-            print("ENDING", game.ply)
-            if game.ply == 1:   #ply has changed in the meantime, so these are inverted
-                game.move_log.append(("P1", "ILLEGAL"))
+        if current_move is not None:
+            if current_move[0] in ['U', 'D', 'L', 'R']:
+                game.move_player(current_move)
             else:
-                game.move_log.append(("P2", "ILLEGAL"))            
-            stop_game = True
+                game.place_wall(current_move)
+            #print(current_move)
+            game.print_board()
+
             
+            # Check if the game is over
+            if stop_game == True:
+                running = False
 
-        current_move = None
-   
             
+            if game.game_over:
+                stop_game = True
 
-    game.draw_board()
-    game.draw_log()
-    pygame.display.update()
+            if illegal == True:
+                print("ENDING", game.ply)
+                if game.ply == 1:   #ply has changed in the meantime, so these are inverted
+                    game.move_log.append(("P1", "ILLEGAL"))
+                else:
+                    game.move_log.append(("P2", "ILLEGAL"))            
+                stop_game = True
+                
 
-pygame.quit()
+            current_move = None
+    
+                
+
+        game.draw_board()
+        game.draw_log()
+        pygame.display.update()
+
+    pygame.quit()
